@@ -1,58 +1,44 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
+  id        String    @id @default(cuid())
+  email     String    @unique
   password  String
   name      String
-  role      Role     @default(USER)
+  role      String    @default("USER")
   bookings  Booking[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Room {
-  id        String   @id @default(cuid())
-  name      String   @unique
+  id        String    @id @default(cuid())
+  name      String    @unique
   capacity  Int
-  equipment Json     // Store equipment as JSON array
+  equipment String    @default("[]")
   bookings  Booking[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Booking {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   userId    String
   roomId    String
   startTime DateTime
   endTime   DateTime
-  status    BookingStatus @default(ACTIVE)
-  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  room      Room         @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  status    String    @default("ACTIVE")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room      Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  @@unique([roomId, startTime, endTime]) // Prevent duplicate bookings
-}
-
-enum Role {
-  USER
-  ADMIN
-}
-
-enum BookingStatus {
-  ACTIVE
-  CANCELLED
-  COMPLETED
+  @@unique([roomId, startTime, endTime])
 }

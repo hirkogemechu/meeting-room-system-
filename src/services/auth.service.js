@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const userRepository = require('../repositories/user.repository');
+const emailService = require('./email.service');
 
 class AuthService {
   async register(userData) {
@@ -23,7 +24,12 @@ class AuthService {
       name,
       email,
       password: hashedPassword,
-      role: 'USER' // Default role
+      role: 'USER'
+    });
+
+    // Send welcome email (asynchronously - doesn't block response)
+    emailService.sendWelcomeEmail(user).catch(error => {
+      console.error('Failed to send welcome email:', error);
     });
 
     // Generate tokens
@@ -67,14 +73,12 @@ class AuthService {
   }
 
   generateTokens(userId) {
-    // Generate access token (short lived)
     const accessToken = jwt.sign(
       { userId, type: 'access' },
       process.env.JWT_ACCESS_SECRET,
       { expiresIn: process.env.JWT_ACCESS_EXPIRY || '15m' }
     );
 
-    // Generate refresh token (long lived)
     const refreshToken = jwt.sign(
       { userId, type: 'refresh' },
       process.env.JWT_REFRESH_SECRET,
@@ -86,20 +90,17 @@ class AuthService {
 
   async refreshTokens(refreshToken) {
     try {
-      // Verify refresh token
       const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
       
       if (decoded.type !== 'refresh') {
         throw new Error('Invalid token type');
       }
 
-      // Check if user exists
       const user = await userRepository.findById(decoded.userId);
       if (!user) {
         throw new Error('User not found');
       }
 
-      // Generate new tokens
       return this.generateTokens(user.id);
     } catch (error) {
       error.statusCode = 401;

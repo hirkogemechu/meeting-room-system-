@@ -2,134 +2,79 @@ const prisma = require('../utils/prisma');
 
 class RoomRepository {
   async createRoom(roomData) {
-    return await prisma.room.create({
-      data: {
-        name: roomData.name,
-        capacity: roomData.capacity,
-        equipment: roomData.equipment || []
-      }
-    });
+    // Convert equipment array to JSON string for SQLite
+    const data = {
+      ...roomData,
+      equipment: JSON.stringify(roomData.equipment || [])
+    };
+    
+    return await prisma.room.create({ data });
   }
 
   async findAllRooms(filters = {}, page = 1, limit = 10) {
-    const { capacity, hasEquipment, search } = filters;
     const skip = (page - 1) * limit;
     
-    // Build where clause
     let where = {};
-    
-    if (capacity) {
-      where.capacity = { gte: parseInt(capacity) };
+    if (filters.capacity) {
+      where.capacity = { gte: parseInt(filters.capacity) };
     }
     
-    if (hasEquipment) {
-      // Check if equipment array contains the specified equipment
-      where.equipment = { 
-        array_contains: hasEquipment 
-      };
-    }
+    const rooms = await prisma.room.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' }
+    });
     
-    if (search) {
-      where.name = { contains: search, mode: 'insensitive' };
-    }
+    // Parse equipment JSON strings back to arrays
+    const parsedRooms = rooms.map(room => ({
+      ...room,
+      equipment: JSON.parse(room.equipment || '[]')
+    }));
     
-    const [rooms, total] = await Promise.all([
-      prisma.room.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          bookings: {
-            where: {
-              status: 'ACTIVE',
-              startTime: { gte: new Date() }
-            },
-            take: 5
-          }
-        }
-      }),
-      prisma.room.count({ where })
-    ]);
+    const total = await prisma.room.count({ where });
     
     return {
-      rooms,
+      rooms: parsedRooms,
       total,
       page,
-      limit,
       totalPages: Math.ceil(total / limit)
     };
   }
 
   async findRoomById(id) {
-    return await prisma.room.findUnique({
+    const room = await prisma.room.findUnique({
       where: { id },
       include: {
         bookings: {
           where: { status: 'ACTIVE' },
-          orderBy: { startTime: 'asc' },
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true
-              }
-            }
-          }
+          orderBy: { startTime: 'asc' }
         }
       }
     });
+    
+    if (room) {
+      room.equipment = JSON.parse(room.equipment || '[]');
+    }
+    
+    return room;
   }
 
   async findRoomByName(name) {
-    return await prisma.room.findUnique({
-      where: { name }
-    });
+    return await prisma.room.findUnique({ where: { name } });
   }
 
   async updateRoom(id, roomData) {
-    return await prisma.room.update({
-      where: { id },
-      data: {
-        name: roomData.name,
-        capacity: roomData.capacity,
-        equipment: roomData.equipment
-      }
-    });
+    const data = {};
+    if (roomData.name) data.name = roomData.name;
+    if (roomData.capacity) data.capacity = roomData.capacity;
+    if (roomData.equipment) data.equipment = JSON.stringify(roomData.equipment);
+    
+    return await prisma.room.update({ where: { id }, data });
   }
 
   async deleteRoom(id) {
-    // Check if room has active bookings
-    const activeBookings = await prisma.booking.findFirst({
-      where: {
-        roomId: id,
-        status: 'ACTIVE',
-        startTime: { gt: new Date() }
-      }
-    });
-    
-    if (activeBookings) {
-      throw new Error('Cannot delete room with active bookings');
-    }
-    
-    return await prisma.room.delete({
-      where: { id }
-    });
-  }
-
-  async getRoomStats(id) {
-    const stats = await prisma.booking.aggregate({
-      where: { roomId: id },
-      _count: true,
-      _avg: { 
-        // You can add more aggregations here
-      }
-    });
-    
-    return {
-      totalBookings: stats._count
-    };
+    return await prisma.room.delete({ where: { id } });
   }
 }
 

@@ -3,6 +3,8 @@ const roomRepository = require('../repositories/room.repository');
 const { Worker } = require('worker_threads');
 const path = require('path');
 const prisma = require('../utils/prisma');
+const emailService = require('./email.service');
+const pdfService = require('./pdf.service');
 
 class BookingService {
   async createBooking(userId, bookingData) {
@@ -42,11 +44,34 @@ class BookingService {
       where: { id: userId }
     });
     
-    // Generate PDF receipt (without email for now to avoid errors)
-    // We'll add email later after configuring SMTP
-    console.log(`Booking created: ${booking.id} for user ${user.email}`);
+    console.log(`📅 Booking created: ${booking.id} for user ${user.email}`);
+    
+    // Generate PDF receipt and send email (asynchronously - doesn't block response)
+    this.generateReceiptAndSendEmail(booking, user, room).catch(error => {
+      console.error('Failed to generate receipt/send email:', error);
+    });
     
     return booking;
+  }
+  
+  // New method to handle PDF generation and email sending
+  async generateReceiptAndSendEmail(booking, user, room) {
+    try {
+      // Generate PDF receipt
+      const pdfResult = await pdfService.generateBookingReceipt(booking, user, room);
+      console.log('📄 PDF generated:', pdfResult.filename);
+      
+      // Send email with PDF attachment
+      const emailResult = await emailService.sendBookingConfirmation(booking, user, room, pdfResult.filepath);
+      
+      if (emailResult.success) {
+        console.log('📧 Confirmation email sent to:', user.email);
+      } else {
+        console.error('❌ Email failed:', emailResult.error);
+      }
+    } catch (error) {
+      console.error('❌ Receipt generation failed:', error);
+    }
   }
   
   async getUserBookings(userId, page, limit, status) {
@@ -105,7 +130,34 @@ class BookingService {
       throw error;
     }
     
-    return await bookingRepository.cancelBooking(bookingId);
+    const cancelledBooking = await bookingRepository.cancelBooking(bookingId);
+    
+    // Send cancellation email (asynchronously)
+    this.sendCancellationEmail(cancelledBooking).catch(error => {
+      console.error('Failed to send cancellation email:', error);
+    });
+    
+    return cancelledBooking;
+  }
+  
+  // New method to handle cancellation email
+  async sendCancellationEmail(booking) {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: booking.userId }
+      });
+      const room = await roomRepository.findRoomById(booking.roomId);
+      
+      const emailResult = await emailService.sendBookingCancellation(booking, user, room);
+      
+      if (emailResult.success) {
+        console.log('📧 Cancellation email sent to:', user.email);
+      } else {
+        console.error('❌ Cancellation email failed:', emailResult.error);
+      }
+    } catch (error) {
+      console.error('❌ Failed to send cancellation email:', error);
+    }
   }
   
   async getUpcomingBookings(userId) {
