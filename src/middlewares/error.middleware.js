@@ -1,13 +1,13 @@
 const logger = require('../utils/logger');
 
-const errorMiddleware = (err, req, res, next) => {
+const errorMiddleware = (err, req, res, _next) => {
   // Log error
   logger.error({
     message: err.message,
     stack: err.stack,
     url: req.url,
     method: req.method,
-    ip: req.ip
+    ip: req.ip,
   });
 
   // Default error response
@@ -30,7 +30,7 @@ const errorMiddleware = (err, req, res, next) => {
     success: false,
     message: message,
     statusCode: statusCode,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 };
 

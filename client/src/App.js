@@ -48,11 +48,8 @@ function App() {
           }}
         />
         <Routes>
-          {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          
-          {/* Protected Routes - Role-based */}
           <Route
             path="/admin"
             element={
@@ -73,8 +70,6 @@ function App() {
               </PrivateRoute>
             }
           />
-          
-          {/* Root redirect based on role */}
           <Route path="/" element={<RoleBasedRedirect />} />
         </Routes>
       </AuthProvider>

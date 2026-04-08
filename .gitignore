@@ -55,3 +55,9 @@ coverage/
 *.pem
 *.key
 *.cert
+# Environment files
+.env
+.env.local
+.env.production
+.env.test
+.env.*.local

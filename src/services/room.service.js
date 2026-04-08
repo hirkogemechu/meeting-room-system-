@@ -8,7 +8,7 @@ class RoomService {
       error.statusCode = 409;
       throw error;
     }
-    
+
     return await roomRepository.createRoom(roomData);
   }
 

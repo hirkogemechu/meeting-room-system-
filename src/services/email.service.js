@@ -3,11 +3,12 @@ const nodemailer = require('nodemailer');
 class EmailService {
   constructor() {
     // Check if SMTP credentials are configured
-    const hasValidCredentials = process.env.SMTP_USER && 
-                                process.env.SMTP_PASS && 
-                                process.env.SMTP_USER !== '' && 
-                                process.env.SMTP_PASS !== '';
-    
+    const hasValidCredentials =
+      process.env.SMTP_USER &&
+      process.env.SMTP_PASS &&
+      process.env.SMTP_USER !== '' &&
+      process.env.SMTP_PASS !== '';
+
     if (hasValidCredentials) {
       this.transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'smtp.ethereal.email',
@@ -15,8 +16,8 @@ class EmailService {
         secure: false,
         auth: {
           user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS
-        }
+          pass: process.env.SMTP_PASS,
+        },
       });
       this.enabled = true;
       console.log('📧 Email service ENABLED');
@@ -40,7 +41,9 @@ class EmailService {
     const mailOptions = {
       from: process.env.SMTP_FROM || '"MeetingRoom Pro" <noreply@meetingroompro.com>',
       to: user.email,
-      subject: `✅ Booking Confirmed: ${room.name} on ${new Date(booking.startTime).toLocaleDateString()}`,
+      subject: `✅ Booking Confirmed: ${room.name} on ${new Date(
+        booking.startTime
+      ).toLocaleDateString()}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
@@ -71,16 +74,18 @@ class EmailService {
             </div>
 
             <p>Thank you for choosing MeetingRoom Pro!</p>
-            <p>Best regards,<br><strong>MeetingRoom Pro Team</strong></p>
+            <p>Best regards,<br><strong>MeetingRoom Hirko Gemechu</strong></p>
           </div>
         </div>
       `,
-      attachments: pdfPath ? [
-        {
-          filename: `booking_receipt_${booking.id.substring(0, 8)}.pdf`,
-          path: pdfPath
-        }
-      ] : []
+      attachments: pdfPath
+        ? [
+            {
+              filename: `booking_receipt_${booking.id.substring(0, 8)}.pdf`,
+              path: pdfPath,
+            },
+          ]
+        : [],
     };
 
     try {
@@ -107,7 +112,9 @@ class EmailService {
     const mailOptions = {
       from: process.env.SMTP_FROM || '"MeetingRoom Pro" <noreply@meetingroompro.com>',
       to: user.email,
-      subject: `❌ Booking Cancelled: ${room.name} on ${new Date(booking.startTime).toLocaleDateString()}`,
+      subject: `❌ Booking Cancelled: ${room.name} on ${new Date(
+        booking.startTime
+      ).toLocaleDateString()}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
@@ -129,7 +136,7 @@ class EmailService {
             <p>We hope to see you again soon!</p>
           </div>
         </div>
-      `
+      `,
     };
 
     try {
@@ -172,7 +179,7 @@ class EmailService {
             <p>Best regards,<br><strong>MeetingRoom Pro Team</strong></p>
           </div>
         </div>
-      `
+      `,
     };
 
     try {

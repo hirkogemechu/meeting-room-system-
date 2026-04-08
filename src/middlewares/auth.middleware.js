@@ -16,7 +16,7 @@ const protect = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: 'Not authorized, no token',
-        statusCode: 401
+        statusCode: 401,
       });
     }
 
@@ -30,15 +30,15 @@ const protect = async (req, res, next) => {
         id: true,
         email: true,
         name: true,
-        role: true
-      }
+        role: true,
+      },
     });
 
     if (!user) {
       return res.status(401).json({
         success: false,
         message: 'User not found',
-        statusCode: 401
+        statusCode: 401,
       });
     }
 
@@ -50,14 +50,14 @@ const protect = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: 'Invalid token',
-        statusCode: 401
+        statusCode: 401,
       });
     }
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,
         message: 'Token expired',
-        statusCode: 401
+        statusCode: 401,
       });
     }
     next(error);
@@ -71,7 +71,7 @@ const adminOnly = (req, res, next) => {
     res.status(403).json({
       success: false,
       message: 'Access denied. Admin only.',
-      statusCode: 403
+      statusCode: 403,
     });
   }
 };

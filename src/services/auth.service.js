@@ -24,11 +24,11 @@ class AuthService {
       name,
       email,
       password: hashedPassword,
-      role: 'USER'
+      role: 'USER',
     });
 
     // Send welcome email (asynchronously - doesn't block response)
-    emailService.sendWelcomeEmail(user).catch(error => {
+    emailService.sendWelcomeEmail(user).catch((error) => {
       console.error('Failed to send welcome email:', error);
     });
 
@@ -37,7 +37,7 @@ class AuthService {
 
     return {
       user,
-      ...tokens
+      ...tokens,
     };
   }
 
@@ -66,24 +66,20 @@ class AuthService {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
       },
-      ...tokens
+      ...tokens,
     };
   }
 
   generateTokens(userId) {
-    const accessToken = jwt.sign(
-      { userId, type: 'access' },
-      process.env.JWT_ACCESS_SECRET,
-      { expiresIn: process.env.JWT_ACCESS_EXPIRY || '15m' }
-    );
+    const accessToken = jwt.sign({ userId, type: 'access' }, process.env.JWT_ACCESS_SECRET, {
+      expiresIn: process.env.JWT_ACCESS_EXPIRY || '15m',
+    });
 
-    const refreshToken = jwt.sign(
-      { userId, type: 'refresh' },
-      process.env.JWT_REFRESH_SECRET,
-      { expiresIn: process.env.JWT_REFRESH_EXPIRY || '7d' }
-    );
+    const refreshToken = jwt.sign({ userId, type: 'refresh' }, process.env.JWT_REFRESH_SECRET, {
+      expiresIn: process.env.JWT_REFRESH_EXPIRY || '7d',
+    });
 
     return { accessToken, refreshToken };
   }
@@ -91,7 +87,7 @@ class AuthService {
   async refreshTokens(refreshToken) {
     try {
       const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-      
+
       if (decoded.type !== 'refresh') {
         throw new Error('Invalid token type');
       }

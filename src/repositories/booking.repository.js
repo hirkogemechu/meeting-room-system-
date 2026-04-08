@@ -8,24 +8,24 @@ class BookingRepository {
         roomId: bookingData.roomId,
         startTime: new Date(bookingData.startTime),
         endTime: new Date(bookingData.endTime),
-        status: 'ACTIVE'
+        status: 'ACTIVE',
       },
       include: {
         room: {
           select: {
             id: true,
             name: true,
-            capacity: true
-          }
+            capacity: true,
+          },
         },
         user: {
           select: {
             id: true,
             name: true,
-            email: true
-          }
-        }
-      }
+            email: true,
+          },
+        },
+      },
     });
   }
 
@@ -33,7 +33,7 @@ class BookingRepository {
     // Convert to Date objects
     const start = new Date(startTime);
     const end = new Date(endTime);
-    
+
     // Build the where condition
     const whereCondition = {
       roomId: roomId,
@@ -42,41 +42,41 @@ class BookingRepository {
         {
           // Booking that starts during the new booking
           startTime: { lte: start },
-          endTime: { gt: start }
+          endTime: { gt: start },
         },
         {
           // Booking that ends during the new booking
           startTime: { lt: end },
-          endTime: { gte: end }
+          endTime: { gte: end },
         },
         {
           // Booking that completely contains the new booking
           startTime: { gte: start },
-          endTime: { lte: end }
-        }
-      ]
+          endTime: { lte: end },
+        },
+      ],
     };
-    
+
     // If updating, exclude the current booking
     if (excludeBookingId) {
       whereCondition.id = { not: excludeBookingId };
     }
-    
+
     const overlapping = await prisma.booking.findFirst({
-      where: whereCondition
+      where: whereCondition,
     });
-    
+
     return overlapping;
   }
 
   async findUserBookings(userId, page = 1, limit = 10, status = null) {
     const skip = (page - 1) * limit;
-    
+
     let where = { userId };
     if (status) {
       where.status = status;
     }
-    
+
     const [bookings, total] = await Promise.all([
       prisma.booking.findMany({
         where,
@@ -89,27 +89,27 @@ class BookingRepository {
               id: true,
               name: true,
               capacity: true,
-              equipment: true
-            }
-          }
-        }
+              equipment: true,
+            },
+          },
+        },
       }),
-      prisma.booking.count({ where })
+      prisma.booking.count({ where }),
     ]);
-    
+
     return {
       bookings,
       total,
       page,
       limit,
-      totalPages: Math.ceil(total / limit)
+      totalPages: Math.ceil(total / limit),
     };
   }
 
   async findAllBookings(page = 1, limit = 10, filters = {}) {
     const skip = (page - 1) * limit;
     let where = {};
-    
+
     if (filters.status) {
       where.status = filters.status;
     }
@@ -125,7 +125,7 @@ class BookingRepository {
     if (filters.endDate) {
       where.endTime = { lte: new Date(filters.endDate) };
     }
-    
+
     const [bookings, total] = await Promise.all([
       prisma.booking.findMany({
         where,
@@ -137,27 +137,27 @@ class BookingRepository {
             select: {
               id: true,
               name: true,
-              email: true
-            }
+              email: true,
+            },
           },
           room: {
             select: {
               id: true,
               name: true,
-              capacity: true
-            }
-          }
-        }
+              capacity: true,
+            },
+          },
+        },
       }),
-      prisma.booking.count({ where })
+      prisma.booking.count({ where }),
     ]);
-    
+
     return {
       bookings,
       total,
       page,
       limit,
-      totalPages: Math.ceil(total / limit)
+      totalPages: Math.ceil(total / limit),
     };
   }
 
@@ -169,18 +169,18 @@ class BookingRepository {
           select: {
             id: true,
             name: true,
-            email: true
-          }
+            email: true,
+          },
         },
-        room: true
-      }
+        room: true,
+      },
     });
   }
 
   async cancelBooking(id) {
     return await prisma.booking.update({
       where: { id },
-      data: { status: 'CANCELLED' }
+      data: { status: 'CANCELLED' },
     });
   }
 
@@ -189,12 +189,12 @@ class BookingRepository {
       where: {
         userId,
         status: 'ACTIVE',
-        startTime: { gt: new Date() }
+        startTime: { gt: new Date() },
       },
       orderBy: { startTime: 'asc' },
       include: {
-        room: true
-      }
+        room: true,
+      },
     });
   }
 }

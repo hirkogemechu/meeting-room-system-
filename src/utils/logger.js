@@ -7,26 +7,25 @@ const logger = winston.createLogger({
     winston.format.timestamp(),
     winston.format.json(),
     winston.format.printf(({ timestamp, level, message, ...meta }) => {
-      return `${timestamp} [${level.toUpperCase()}]: ${message} ${Object.keys(meta).length ? JSON.stringify(meta) : ''}`;
+      return `${timestamp} [${level.toUpperCase()}]: ${message} ${
+        Object.keys(meta).length ? JSON.stringify(meta) : ''
+      }`;
     })
   ),
   transports: [
     // Write to console
     new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
-      )
+      format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
     }),
     // Write to file
     new winston.transports.File({
       filename: path.join(__dirname, '../../logs/error.log'),
-      level: 'error'
+      level: 'error',
     }),
     new winston.transports.File({
-      filename: path.join(__dirname, '../../logs/combined.log')
-    })
-  ]
+      filename: path.join(__dirname, '../../logs/combined.log'),
+    }),
+  ],
 });
 
 module.exports = logger;

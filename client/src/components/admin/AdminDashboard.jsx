@@ -7,7 +7,7 @@ import {
   Plus, DoorOpen, Download, Calendar, Users, 
   Trash2, Edit, RefreshCw, FileText, 
   TrendingUp, CheckCircle, XCircle, Save, X,
-  UserCog, Settings, BarChart3
+  UserCog
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 

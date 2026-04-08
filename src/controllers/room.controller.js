@@ -7,7 +7,7 @@ class RoomController {
       res.status(201).json({
         success: true,
         message: 'Room created successfully',
-        data: room
+        data: room,
       });
     } catch (error) {
       next(error);
@@ -17,12 +17,8 @@ class RoomController {
   async getAllRooms(req, res, next) {
     try {
       const { capacity, page = 1, limit = 10 } = req.query;
-      const result = await roomService.getAllRooms(
-        { capacity }, 
-        parseInt(page), 
-        parseInt(limit)
-      );
-      
+      const result = await roomService.getAllRooms({ capacity }, parseInt(page), parseInt(limit));
+
       res.status(200).json({
         success: true,
         data: result.rooms,
@@ -30,8 +26,8 @@ class RoomController {
           page: result.page,
           limit: parseInt(limit),
           total: result.total,
-          totalPages: result.totalPages
-        }
+          totalPages: result.totalPages,
+        },
       });
     } catch (error) {
       next(error);
@@ -43,7 +39,7 @@ class RoomController {
       const room = await roomService.getRoomById(req.params.id);
       res.status(200).json({
         success: true,
-        data: room
+        data: room,
       });
     } catch (error) {
       next(error);
@@ -56,7 +52,7 @@ class RoomController {
       res.status(200).json({
         success: true,
         message: 'Room updated successfully',
-        data: room
+        data: room,
       });
     } catch (error) {
       next(error);
@@ -68,7 +64,7 @@ class RoomController {
       await roomService.deleteRoom(req.params.id);
       res.status(200).json({
         success: true,
-        message: 'Room deleted successfully'
+        message: 'Room deleted successfully',
       });
     } catch (error) {
       next(error);

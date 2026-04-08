@@ -1,15 +1,16 @@
 const bookingService = require('../services/booking.service');
 const { Parser } = require('json2csv');
-
+const prisma = require('../utils/prisma');
 class BookingController {
   async createBooking(req, res, next) {
     try {
       const userId = req.user.id;
       const booking = await bookingService.createBooking(userId, req.body);
+
       res.status(201).json({
         success: true,
         message: 'Booking created successfully',
-        data: booking
+        data: booking,
       });
     } catch (error) {
       next(error);
@@ -20,7 +21,9 @@ class BookingController {
     try {
       const userId = req.user.id;
       const { page = 1, limit = 10 } = req.query;
+
       const result = await bookingService.getUserBookings(userId, parseInt(page), parseInt(limit));
+
       res.status(200).json({
         success: true,
         data: result.bookings,
@@ -28,8 +31,8 @@ class BookingController {
           page: result.page,
           limit: parseInt(limit),
           total: result.total,
-          totalPages: result.totalPages
-        }
+          totalPages: result.totalPages,
+        },
       });
     } catch (error) {
       next(error);
@@ -39,7 +42,15 @@ class BookingController {
   async getAllBookings(req, res, next) {
     try {
       const { page = 1, limit = 10 } = req.query;
-      const result = await bookingService.getAllBookings(parseInt(page), parseInt(limit));
+
+      const result = await bookingService.getAllBookings(
+        parseInt(page),
+        parseInt(limit),
+        req.query,
+        req.user.role,
+        req.user.id
+      );
+
       res.status(200).json({
         success: true,
         data: result.bookings,
@@ -47,8 +58,8 @@ class BookingController {
           page: result.page,
           limit: parseInt(limit),
           total: result.total,
-          totalPages: result.totalPages
-        }
+          totalPages: result.totalPages,
+        },
       });
     } catch (error) {
       next(error);
@@ -57,110 +68,120 @@ class BookingController {
 
   async getBookingById(req, res, next) {
     try {
-      const booking = await bookingService.getBookingById(req.params.id);
+      const booking = await bookingService.getBookingById(
+        req.params.id,
+        req.user.id,
+        req.user.role
+      );
+
       res.status(200).json({
         success: true,
-        data: booking
+        data: booking,
       });
     } catch (error) {
       next(error);
     }
   }
-async cancelBooking(req, res, next) {
-  try {
-    const { id } = req.params;
-    const userId = req.user.id;           // Get from authenticated user
-    const userRole = req.user.role;       // Get from authenticated user
-    
-    const booking = await bookingService.cancelBooking(id, userId, userRole);
-    
-    res.status(200).json({
-      success: true,
-      message: 'Booking cancelled successfully',
-      data: booking
-    });
-  } catch (error) {
-    next(error);
+
+  async cancelBooking(req, res, next) {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+      const userRole = req.user.role;
+
+      const booking = await bookingService.cancelBooking(id, userId, userRole);
+
+      res.status(200).json({
+        success: true,
+        message: 'Booking cancelled successfully',
+        data: booking,
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-}
 
   async getUpcomingBookings(req, res, next) {
     try {
       const userId = req.user.id;
       const bookings = await bookingService.getUpcomingBookings(userId);
+
       res.status(200).json({
         success: true,
-        data: bookings
+        data: bookings,
       });
     } catch (error) {
       next(error);
     }
   }
 
- // Add this method to your BookingController class
-async exportBookings(req, res, next) {
-  try {
-    const { format = 'csv' } = req.query;
-    const prisma = require('../utils/prisma');
-    
-    // Get all bookings with relations
-    const bookings = await prisma.booking.findMany({
-      include: {
-        user: {
-          select: {
-            name: true,
-            email: true
-          }
+  async exportBookings(req, res, next) {
+    try {
+      const { format = 'csv' } = req.query;
+
+      const bookings = await prisma.booking.findMany({
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+          room: {
+            select: {
+              name: true,
+              capacity: true,
+            },
+          },
         },
-        room: {
-          select: {
-            name: true,
-            capacity: true
-          }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
-    
-    if (format === 'csv') {
-      // Set headers for CSV download
-      res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', 'attachment; filename=bookings_export.csv');
-      
-      // Write CSV header
-      const headers = ['Booking ID', 'User Name', 'User Email', 'Room Name', 'Start Time', 'End Time', 'Status', 'Created At'];
-      res.write(headers.join(',') + '\n');
-      
-      // Write each booking
-      for (const booking of bookings) {
-        const row = [
-          `"${booking.id}"`,
-          `"${booking.user?.name || 'Unknown'}"`,
-          `"${booking.user?.email || 'Unknown'}"`,
-          `"${booking.room?.name || 'Unknown'}"`,
-          `"${new Date(booking.startTime).toISOString()}"`,
-          `"${new Date(booking.endTime).toISOString()}"`,
-          booking.status,
-          `"${new Date(booking.createdAt).toISOString()}"`
+        orderBy: { createdAt: 'desc' },
+      });
+
+      // CSV EXPORT USING json2csv
+      if (format === 'csv') {
+        const data = bookings.map((booking) => ({
+          bookingId: booking.id,
+          userName: booking.user?.name || 'Unknown',
+          userEmail: booking.user?.email || 'Unknown',
+          roomName: booking.room?.name || 'Unknown',
+          startTime: new Date(booking.startTime).toISOString(),
+          endTime: new Date(booking.endTime).toISOString(),
+          status: booking.status,
+          createdAt: new Date(booking.createdAt).toISOString(),
+        }));
+
+        const fields = [
+          'bookingId',
+          'userName',
+          'userEmail',
+          'roomName',
+          'startTime',
+          'endTime',
+          'status',
+          'createdAt',
         ];
-        res.write(row.join(',') + '\n');
+
+        const parser = new Parser({ fields });
+        const csv = parser.parse(data);
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=bookings_export.csv');
+
+        return res.status(200).send(csv);
       }
-      
-      res.end();
-    } else {
-      // JSON export
+
+      // JSON EXPORT
       res.status(200).json({
         success: true,
         data: bookings,
         count: bookings.length,
-        exportedAt: new Date().toISOString()
+        exportedAt: new Date().toISOString(),
       });
+    } catch (error) {
+      console.error('Export error:', error);
+      next(error);
     }
-  } catch (error) {
-    console.error('Export error:', error);
-    next(error);
   }
-}
 }
 
 module.exports = new BookingController();

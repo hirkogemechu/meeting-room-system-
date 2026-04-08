@@ -9,14 +9,14 @@ class UserRepository {
         email: true,
         name: true,
         role: true,
-        createdAt: true
-      }
+        createdAt: true,
+      },
     });
   }
 
   async findByEmail(email) {
     return await prisma.user.findUnique({
-      where: { email }
+      where: { email },
     });
   }
 
@@ -28,14 +28,14 @@ class UserRepository {
         email: true,
         name: true,
         role: true,
-        createdAt: true
-      }
+        createdAt: true,
+      },
     });
   }
 
   async getAllUsers(page = 1, limit = 10) {
     const skip = (page - 1) * limit;
-    
+
     const [users, total] = await Promise.all([
       prisma.user.findMany({
         skip,
@@ -45,18 +45,18 @@ class UserRepository {
           email: true,
           name: true,
           role: true,
-          createdAt: true
+          createdAt: true,
         },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       }),
-      prisma.user.count()
+      prisma.user.count(),
     ]);
 
     return {
       users,
       total,
       page,
-      totalPages: Math.ceil(total / limit)
+      totalPages: Math.ceil(total / limit),
     };
   }
 }
