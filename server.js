@@ -1,6 +1,5 @@
 const app = require('./src/app');
 const { PrismaClient } = require('@prisma/client');
-const logger = require('./src/utils/logger');
 
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3000;
@@ -22,7 +21,7 @@ const gracefulShutdown = async () => {
 // Start server - CRITICAL: Bind to '0.0.0.0' for Render
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server is running on port ${PORT}`);
-  console.log(`📝 Environment: ${process.env.NODE_ENV}`);
+  console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);
 });
 
