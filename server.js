@@ -19,8 +19,8 @@ const gracefulShutdown = async () => {
   }
 };
 
-// Start server
-const server = app.listen(PORT, () => {
+// Start server - CRITICAL: Bind to '0.0.0.0' for Render
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`📝 Environment: ${process.env.NODE_ENV}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);

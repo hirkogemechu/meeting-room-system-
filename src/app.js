@@ -18,14 +18,18 @@ const errorMiddleware = require('./middlewares/error.middleware');
 
 const app = express();
 
+// CRITICAL FOR RENDER: Trust proxy to fix rate limiter
+app.set('trust proxy', 1);
+
 // Configure CORS options
 const corsOptions = {
   origin: [
     'http://localhost:3000',
     'http://localhost:3001',
     'https://jade-dango-483328.netlify.app',
-    /\.netlify\.app$/,  // Allow all Netlify apps
-    /\.onrender\.com$/   // Allow all Render apps
+    'https://meeting-room-hirko.netlify.app',
+    /\.netlify\.app$/,
+    /\.onrender\.com$/
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
@@ -67,6 +71,7 @@ app.use(
           'http://localhost:3000', 
           'http://localhost:3001',
           'https://jade-dango-483328.netlify.app',
+          'https://meeting-room-hirko.netlify.app',
           'https://*.netlify.app'
         ],
       },
