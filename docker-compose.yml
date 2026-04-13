@@ -1,5 +1,4 @@
 services:
-  # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
     container_name: meeting-room-db
@@ -12,59 +11,32 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - meeting-room-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Backend API
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     container_name: meeting-room-backend
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 3000
       DATABASE_URL: postgresql://postgres:postgres123@postgres:5432/meeting_room_db
-      JWT_ACCESS_SECRET: production-secret-key-2024
-      JWT_REFRESH_SECRET: production-refresh-key-2024
-      JWT_ACCESS_EXPIRY: 15m
-      JWT_REFRESH_EXPIRY: 7d
-      COOKIE_SECURE: "true"
-      CORS_ORIGIN: http://localhost
+      JWT_ACCESS_SECRET: your-super-secret-access-key-change-this
+      JWT_REFRESH_SECRET: your-super-secret-refresh-key-change-this
+      JWT_ACCESS_EXPIRY: 15mCLEAN
+      JWT_REFRESH_EXPIRY: 7dcls
+      COOKIE_SECURE: "false"
+      CORS_ORIGIN: http://localhost:3001
     ports:
       - "3000:3000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - meeting-room-network
-    volumes:
-      - ./receipts:/app/receipts
     command: sh -c "npx prisma migrate deploy && node server.js"
-
-  # Frontend ( want to serve React from Docker)
-  frontend:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-    container_name: meeting-room-frontend
-    restart: unless-stopped
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-    networks:
-      - meeting-room-network
-
-networks:
-  meeting-room-network:
-    driver: bridge
 
 volumes:
   postgres_data:

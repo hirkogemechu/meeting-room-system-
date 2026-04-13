@@ -17,6 +17,8 @@ const registerSchema = z.object({
     .max(100, 'Password must be less than 100 characters')
     .regex(/[A-Za-z]/, 'Password must contain at least one letter')
     .regex(/[0-9]/, 'Password must contain at least one number'),
+      role: z.enum(['USER', 'ADMIN']).optional().default('USER'),  
+
 });
 
 // Login validation schema

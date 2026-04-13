@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { User, Mail, Lock, Building2, Eye, EyeOff, UserPlus } from 'lucide-react';
+import { User, Mail, Lock, Building2, Eye, EyeOff, UserPlus, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../../services/api';
 
@@ -10,6 +10,7 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    role: 'USER',  // ADD THIS - default role is USER
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -58,12 +59,12 @@ const Register = () => {
     setLoading(true);
     
     try {
-      // Direct API call for debugging
       console.log('Sending registration request...');
       const response = await api.post('/auth/register', {
         name: formData.name,
         email: formData.email,
         password: formData.password,
+        role: formData.role,  // ADD THIS - send role to backend
       });
       
       console.log('Response:', response.data);
@@ -206,6 +207,28 @@ const Register = () => {
                     )}
                   </button>
                 </div>
+              </div>
+
+              {/* ADD ROLE SELECTION - Admin only option (you can restrict this) */}
+              <div>
+                <label className="block text-gray-700 font-semibold mb-2">
+                  <Shield className="inline w-4 h-4 mr-1" />
+                  Account Type
+                </label>
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="USER">Regular User - Book rooms and view my bookings</option>
+                  <option value="ADMIN">Admin - Full system access</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  {formData.role === 'ADMIN' 
+                    ? 'Admin users can create/edit rooms, view all bookings, and manage users' 
+                    : 'Regular users can book rooms and manage their own bookings'}
+                </p>
               </div>
 
               <button

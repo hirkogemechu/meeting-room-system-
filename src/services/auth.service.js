@@ -5,7 +5,8 @@ const emailService = require('./email.service');
 
 class AuthService {
   async register(userData) {
-    const { name, email, password } = userData;
+    // ADD role to destructuring with default value 'USER'
+    const { name, email, password, role = 'USER' } = userData;
 
     // Check if user already exists
     const existingUser = await userRepository.findByEmail(email);
@@ -19,12 +20,12 @@ class AuthService {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user
+    // Create user - USE the role from request
     const user = await userRepository.createUser({
       name,
       email,
       password: hashedPassword,
-      role: 'USER',
+      role: role,  // CHANGE THIS - use the role parameter instead of hardcoded 'USER'
     });
 
     // Send welcome email (asynchronously - doesn't block response)
