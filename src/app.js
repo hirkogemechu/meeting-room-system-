@@ -70,8 +70,8 @@ app.use(
           "'self'", 
           'http://localhost:3000', 
           'http://localhost:3001',
-          'https://jade-dango-483328.netlify.app',
-          'https://meeting-room-hirko.netlify.app',
+          'https://meeting-book-room.netlify.app/',
+          'https://hirko-room-meeting.netlify.app/',
           'https://*.netlify.app'
         ],
       },
