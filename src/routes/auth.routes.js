@@ -25,5 +25,36 @@ router.delete('/users/:id', protect, adminOnly, authController.deleteUser);
 router.get('/test', (req, res) => {
   res.json({ success: true, message: 'Auth routes are working!' });
 });
-
+/**
+ * @swagger
+ * /auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *       409:
+ *         description: User already exists
+ *       422:
+ *         description: Validation error
+ */
+router.post('/register', validate(registerSchema), authController.register);
 module.exports = router;

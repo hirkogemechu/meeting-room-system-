@@ -61,3 +61,5 @@ coverage/
 .env.production
 .env.test
 .env.*.local
+# Local Netlify folder
+.netlify

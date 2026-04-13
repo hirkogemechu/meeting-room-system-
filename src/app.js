@@ -4,6 +4,8 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
 
 // Load environment variables
 dotenv.config();
@@ -38,7 +40,13 @@ const corsOptions = {
   preflightContinue: false,
   optionsSuccessStatus: 204
 };
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+// Optional: JSON version of swagger spec
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
 // Apply CORS middleware FIRST
 app.use(cors(corsOptions));
 
