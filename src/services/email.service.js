@@ -39,7 +39,7 @@ class EmailService {
     const duration = (new Date(booking.endTime) - new Date(booking.startTime)) / (1000 * 60 * 60);
 
     const mailOptions = {
-      from: process.env.SMTP_FROM || '"MeetingRoom Pro" <noreply@meetingroompro.com>',
+      from: process.env.SMTP_FROM || '"MeetingRoom Pro" <hirkogemechu10@gmail.com>"',
       to: user.email,
       subject: `✅ Booking Confirmed: ${room.name} on ${new Date(
         booking.startTime

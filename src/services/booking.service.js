@@ -39,7 +39,10 @@ class BookingService {
       where: { id: userId },
     });
 
-    console.log(`📅 Booking created: ${booking.id} for user ${user.email}`);
+    console.log(
+  `📅 Booking created: ${booking.id} for user ${user?.email || 'test-user'}`
+);
+
 
     // Generate PDF receipt and send email (asynchronously - doesn't block response)
     this.generateReceiptAndSendEmail(booking, user, room).catch((error) => {
